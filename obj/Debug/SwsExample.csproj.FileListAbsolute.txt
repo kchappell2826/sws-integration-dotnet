@@ -1,0 +1,6 @@
+C:\GIT\sample-code\NetCodeSample\RestClient\bin\Debug\SwsExample.exe.config
+C:\GIT\sample-code\NetCodeSample\RestClient\bin\Debug\SwsExample.exe
+C:\GIT\sample-code\NetCodeSample\RestClient\bin\Debug\SwsExample.pdb
+C:\GIT\sample-code\NetCodeSample\RestClient\obj\Debug\ResolveAssemblyReference.cache
+C:\GIT\sample-code\NetCodeSample\RestClient\obj\Debug\SwsExample.exe
+C:\GIT\sample-code\NetCodeSample\RestClient\obj\Debug\SwsExample.pdb
