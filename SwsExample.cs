@@ -62,7 +62,6 @@ namespace SwsExample
         // geocode task
         private const string SWS_SAMPLE_ADDRESS_KEY = "corelogic.sws.sample.geocode.address";
         private const string SWS_SAMPLE_CITYSTATEZIP_KEY = "corelogic.sws.sample.geocode.cityStateZip";
-        private const string SWS_SAMPLE_INCLUDEDETAILS_KEY = "corelogic.sws.sample.geocode.includeDetails";
 
         // map tile task
         private const string SWS_SAMPLE_HEIGHT_KEY = "corelogic.sws.sample.mapTile.height";
@@ -86,7 +85,6 @@ namespace SwsExample
 
         private const string PARAM_GEOCODE_ADDRESS = "address";
         private const string PARAM_GEOCODE_CITY = "city";
-        private const string PARAM_GEOCODE_DETAIL = "detail";
         private const string PARAM_GEOCODE_AUTHKEY = "authKey";
         private const string PARAM_GEOCODE_HEIGHT = "height";
         private const string PARAM_GEOCODE_WIDTH = "width";
@@ -163,12 +161,16 @@ namespace SwsExample
             // check if username and password contain text
             if (String.IsNullOrEmpty(username) || String.IsNullOrEmpty(password))
             {
-                Console.WriteLine("Please set the username and password in app.config before continuing");
+                Console.WriteLine("WARNING: Please set the username and password in app.config before continuing.");
                 Environment.Exit(0);
             }
 
             // build the request
-            UriBuilder uriBuilder = new UriBuilder(PROTOCOL, this.appHost, this.appPort, this.appRoot + ENDPOINT_AUTHENTICATION);
+            UriBuilder uriBuilder = new UriBuilder();
+            uriBuilder.Scheme = PROTOCOL;
+            uriBuilder.Host = this.appHost;
+            uriBuilder.Port = this.appPort;
+            uriBuilder.Path = this.appRoot + ENDPOINT_AUTHENTICATION;
             Uri authUri = uriBuilder.Uri;
 
             try
@@ -179,11 +181,12 @@ namespace SwsExample
                 authenticationRequest.Password = password;
                 string json = GenerateJsonString(authenticationRequest);
 
-
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(authUri);
                 request.Method = HTTP_METHOD_POST;
                 request.ContentType = HTTP_CONTENT_TYPE_JSON;
                 SetBody(request, json);
+
+                PrintRequest(request, json);
 
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
@@ -242,12 +245,15 @@ namespace SwsExample
             PrintStart(Task.GEOCODE);
 
             // build the request
-            UriBuilder uriBuilder = new UriBuilder(PROTOCOL, this.appHost, this.appPort, this.appRoot + ENDPOINT_GEOCODE);
+            UriBuilder uriBuilder = new UriBuilder();
+            uriBuilder.Scheme = PROTOCOL;
+            uriBuilder.Host = this.appHost;
+            uriBuilder.Port = this.appPort;
+            uriBuilder.Path = this.appRoot + ENDPOINT_GEOCODE;
 
             var coll = HttpUtility.ParseQueryString(string.Empty);
             coll[PARAM_GEOCODE_ADDRESS] = ConfigurationManager.AppSettings[SWS_SAMPLE_ADDRESS_KEY];
             coll[PARAM_GEOCODE_CITY] = ConfigurationManager.AppSettings[SWS_SAMPLE_CITYSTATEZIP_KEY];
-            coll[PARAM_GEOCODE_DETAIL] = ConfigurationManager.AppSettings[SWS_SAMPLE_INCLUDEDETAILS_KEY];
             coll[PARAM_GEOCODE_AUTHKEY] = this.authkey;
 
             uriBuilder.Query = coll.ToString();
@@ -260,7 +266,9 @@ namespace SwsExample
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(geocodeUri);
                 request.Method = HTTP_METHOD_GET;
                 request.ContentType = HTTP_CONTENT_TYPE_JSON;
-                
+
+                PrintRequest(request, null);
+
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
                     using (Stream responseStream = CopyAndClose(response.GetResponseStream()))
@@ -292,8 +300,12 @@ namespace SwsExample
             PrintStart(Task.RETRIEVE_MAP_TILE);
 
             // build the request
-            UriBuilder uriBuilder = new UriBuilder(PROTOCOL, this.appHost, this.appPort, this.appRoot + ENDPOINT_MAP_TILE);
-
+            UriBuilder uriBuilder = new UriBuilder();
+            uriBuilder.Scheme = PROTOCOL;
+            uriBuilder.Host = this.appHost;
+            uriBuilder.Port = this.appPort;
+            uriBuilder.Path = this.appRoot + ENDPOINT_MAP_TILE;
+           
             var coll = HttpUtility.ParseQueryString(string.Empty);
             coll[PARAM_GEOCODE_HEIGHT] = ConfigurationManager.AppSettings[SWS_SAMPLE_HEIGHT_KEY];
             coll[PARAM_GEOCODE_WIDTH] = ConfigurationManager.AppSettings[SWS_SAMPLE_WIDTH_KEY];
@@ -304,14 +316,15 @@ namespace SwsExample
 
             uriBuilder.Query = coll.ToString();
 
-            Uri mapTileUri = uriBuilder.Uri;
-
             try
             {
                 // make the request
+                Uri mapTileUri = uriBuilder.Uri;
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(mapTileUri);
                 request.Method = HTTP_METHOD_GET;
                 request.ContentType = HTTP_CONTENT_TYPE_PNG;
+
+                PrintRequest(request, null);
 
                 byte[] responseBody = null;
                 
@@ -383,17 +396,28 @@ namespace SwsExample
         {
             Console.WriteLine(string.Format("\r\nSuccessfully completed {0}\r\n", task));
         }
+
+	    void PrintRequest (HttpWebRequest request, String requestBody) {
+            Console.WriteLine("REQUEST:");
+            Console.WriteLine(request.Method + " " + request.RequestUri.ToString());
+
+            Console.WriteLine("\nHttpHeaders:\n{0}",request.Headers);
+
+		    if (requestBody != null) {
+                Console.WriteLine(string.Format("Request body:\n{0}", requestBody));
+		    }
+
+            Console.WriteLine();
+            Console.WriteLine();
+	    }
                 
         void PrintResponse(HttpWebResponse response, Stream responseStream)
         {
             Console.WriteLine("RESPONSE:");
             Console.WriteLine((int)response.StatusCode + " " + response.StatusCode);
 
-            foreach (string key in response.Headers.Keys)
-            {
-                Console.Write(string.Format("{0}: {1}\r\n", key, response.Headers[key]));
-            }
-
+            Console.WriteLine("\nHttpHeaders:\n{0}", response.Headers);
+            
             if (responseStream != null)
             {
                 StreamReader reader = new StreamReader(responseStream);
