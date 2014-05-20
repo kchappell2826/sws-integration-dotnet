@@ -54,6 +54,7 @@ namespace SwsExample
         private const string SWS_SAMPLE_HOST_KEY = "corelogic.sws.sample.host";
         private const string SWS_SAMPLE_PORT_KEY = "corelogic.sws.sample.port";
         private const string SWS_SAMPLE_ROOT_KEY = "corelogic.sws.sample.root";
+        private const string SWS_SAMPLE_VERSION_KEY = "corelogic.sws.sample.version";
 
         // authentication task
         private const string SWS_SAMPLE_USERNAME_KEY = "corelogic.sws.sample.authentication.username";
@@ -96,6 +97,7 @@ namespace SwsExample
         private int appPort;
         private string appHost;
         private string appRoot;
+        private string appVersion;
         private Uri baseURI;
         private string authkey;
 
@@ -137,6 +139,13 @@ namespace SwsExample
                 return;
             }
 
+            this.appVersion = ConfigurationManager.AppSettings[SWS_SAMPLE_VERSION_KEY];
+            if (string.IsNullOrEmpty(this.appVersion))
+            {
+                Console.WriteLine("Please make sure the version is valid");
+                return;
+            }
+
             // base URI
             this.baseURI = new UriBuilder(PROTOCOL, this.appHost, this.appPort).Uri;
         }
@@ -170,7 +179,7 @@ namespace SwsExample
             uriBuilder.Scheme = PROTOCOL;
             uriBuilder.Host = this.appHost;
             uriBuilder.Port = this.appPort;
-            uriBuilder.Path = this.appRoot + ENDPOINT_AUTHENTICATION;
+            uriBuilder.Path = this.appRoot + this.appVersion + ENDPOINT_AUTHENTICATION;
             Uri authUri = uriBuilder.Uri;
 
             try
@@ -249,7 +258,7 @@ namespace SwsExample
             uriBuilder.Scheme = PROTOCOL;
             uriBuilder.Host = this.appHost;
             uriBuilder.Port = this.appPort;
-            uriBuilder.Path = this.appRoot + ENDPOINT_GEOCODE;
+            uriBuilder.Path = this.appRoot + this.appVersion + ENDPOINT_GEOCODE;
 
             var coll = HttpUtility.ParseQueryString(string.Empty);
             coll[PARAM_GEOCODE_ADDRESS] = ConfigurationManager.AppSettings[SWS_SAMPLE_ADDRESS_KEY];
@@ -304,7 +313,7 @@ namespace SwsExample
             uriBuilder.Scheme = PROTOCOL;
             uriBuilder.Host = this.appHost;
             uriBuilder.Port = this.appPort;
-            uriBuilder.Path = this.appRoot + ENDPOINT_MAP_TILE;
+            uriBuilder.Path = this.appRoot + this.appVersion + ENDPOINT_MAP_TILE;
            
             var coll = HttpUtility.ParseQueryString(string.Empty);
             coll[PARAM_GEOCODE_HEIGHT] = ConfigurationManager.AppSettings[SWS_SAMPLE_HEIGHT_KEY];
